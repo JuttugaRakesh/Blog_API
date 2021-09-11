@@ -15,18 +15,14 @@ def register(request):
     password=request.data['password']
     print(request.data)
     serializer=UserSerializers(data={**request.data})
-    # serializer = UserSerializers(data={**request.data, "password": make_password(password)})
+
     if serializer.is_valid():
         user = User.objects.create(**request.data)
         user.set_password(password)
         user.save()
-        # serializer.save()
 
         newuser=User.objects.last()
-        # token,_=Token.objects.get_or_create(user_id=user.id)
         token=RefreshToken.for_user(newuser)
-
-        response_serializer =UserSerializers(newuser)
         return Response(data={'id':user.id,'username':user.username,'email':user.email,'first_name':user.first_name,'last_name':user.last_name,'token':str(token.access_token)})
     else:
         return Response(data=serializer.errors,status=status.HTTP_400_BAD_REQUEST)
@@ -39,14 +35,10 @@ def login(request):
 
     try:
         user = User.objects.get(username=username)
-        # print(user)
         if user:
             print(user)
             if user.check_password(password):
-                # token, _ = Token.objects.get_or_create(user_id=user.id)
                 token = RefreshToken.for_user(user)
-
-
                 return Response(data={'id':user.id,'username': user.username, 'email': user.email, 'first_name': user.first_name,
                                       'last_name': user.last_name, 'token': str(token.access_token)})
             else:
@@ -105,6 +97,6 @@ class HomeView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        content = {'message': 'Welcome to my Blog'}
-        return Response(content)
+        msg = {'message': 'Welcome to my Blog'}
+        return Response(msg)
 
